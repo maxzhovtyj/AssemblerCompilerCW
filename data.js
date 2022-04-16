@@ -7,7 +7,7 @@ class Data {
     data = [
         {bit8: ['al', 'bl', 'cl', 'dl', 'ah', 'bh', 'ch', 'dh'], value: '8-bit register'},
         {bit16: ['ax', 'bx', 'cx', 'dx'], value: '16-bit register'},
-        {bit32: ['eax', 'ebx', 'ecx', 'edx'], value: '32-bit register'},
+        {bit32: ['eax', 'ebx', 'ecx', 'edx'], value: '32-bit data register'},
         {
             instructions: ['nop', 'mov', 'imul', 'mul', 'idiv', 'adc', 'or', 'sub', 'jmp', 'cmp', 'jnb'],
             value: 'instruction'
@@ -16,8 +16,14 @@ class Data {
         {type: ["db"], value: 'type byte'},
         {type: ['dw'], value: 'type 2 bytes'},
         {type: ['dd'], value: 'type 4 bytes'},
+        {type: ["byte"], value: 'identifier type byte'},
+        {type: ['word'], value: 'identifier type 2 bytes'},
+        {type: ['dword'], value: 'identifier type 4 bytes'},
+        {defType: ['ptr'], value: 'identifier type definition'},
+        {distance: ['short', 'far'], value: 'distance definition'},
         {segmentReg: ['ds', 'cs' , 'ss', 'es', 'gs'], value: 'segment register'},
-        {characters: [',', ':'], value: 'character'}
+        {characters: [',', ':'], value: 'character'},
+        {segmentEnd: ['ends'], value: 'end of segment'}
     ]
 
     findOne(word) {
