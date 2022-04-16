@@ -20,7 +20,7 @@ begin:
 	nop
 	nop
 
-	mov	 	al, 3
+	mov	 	al,3
 	mov 	bl, 2
 	imul 	bl
 

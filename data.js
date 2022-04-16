@@ -16,7 +16,8 @@ class Data {
         {type: ["db"], value: 'type byte'},
         {type: ['dw'], value: 'type 2 bytes'},
         {type: ['dd'], value: 'type 4 bytes'},
-        {segmentReg: ['ds', 'cs' , 'ss', 'es', 'gs'], value: 'segment register'}
+        {segmentReg: ['ds', 'cs' , 'ss', 'es', 'gs'], value: 'segment register'},
+        {characters: [',', ':'], value: 'character'}
     ]
 
     findOne(word) {
