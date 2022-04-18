@@ -1,7 +1,7 @@
 const fs = require("fs")
 const data = require('./data.js')
-const config = require('./config')
-const fileUrl = './kr2.asm'
+const config = require('./parser')
+const fileUrl = './kr.asm'
 const resFile = './res.txt'
 
 const content = fs.readFileSync(fileUrl)

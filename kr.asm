@@ -1,4 +1,4 @@
-.386
+.486
 
 Data1       segment use16
 	String		    db		'String'
@@ -13,41 +13,41 @@ Data2       segment use16
 	Zxcv			db		89h
 Data2 		ends
 
-Code1 		segment	
+Code1 		segment	use16
 Assume 		cs:Code1, ds:Data1, gs:Data2
 begin:	
 	nop
 	nop
 	nop
 
-	mov	 	al,3
+	mov	 	al, 3
 	mov 	bl, 2
 	imul 	bl
 
 	mov 	eax, 5
 	mov 	byte ptr [ebx+ecx], 2
-	mul	    byte ptr [ebx+ecx]
+	mul	    byte ptr [ebx + ecx]
 
 	mov al, 10
 	mov bl, 5
 	idiv bl
 
 	mov al, 3
-	mov byte ptr [edx+esi], 7
-	adc al, byte ptr [edx+esi]
+	mov byte ptr [edx + esi], 7
+	adc al, byte ptr [edx + esi]
 
-	or byte ptr [edx+esi], 111b
+	or byte ptr cs:[edx + esi], 111b
 
 	mov eax, 10
-	mov dword ptr [ebx+ecx], 12
-	sub dword ptr [ebx+ecx], eax
+	mov dword ptr [ebx + ecx], 12
+	sub dword ptr [ebx + ecx], eax
 
 	Jmp		short label1
 
 label1:
 	mov al, 10
 	cmp al, 10
-	jnb short label2
+	jnb short label1
 label2:
 	nop
 	nop
