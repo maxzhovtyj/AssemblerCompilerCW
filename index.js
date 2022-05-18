@@ -1,5 +1,4 @@
 const fs = require("fs")
-const data = require('./data.js')
 const config = require('./parser')
 const fileUrl = './kr2.asm'
 const resFile = './res.txt'
@@ -18,3 +17,8 @@ parsed.forEach(row => {
 })
 
 fs.writeFileSync(resFile, result)
+
+// todo виявлення помилок
+// todo assume розібратись
+// todo label та user identifier розібратись
+// todo яку використовувати директиву???

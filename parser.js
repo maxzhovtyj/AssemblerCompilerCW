@@ -58,6 +58,48 @@ class Parser {
             rowPattern.operand2.length++
         }
         let operandBackup = {index: 0, length: 0}
+        if (row[0].word === 'jmp' || row[0].word === 'jnb') {
+            console.log('hi')
+            for (const rowObj of row) {
+                switch (rowObj.type) {
+                    case 'instruction':
+                        mnemonicCalc(rowObj)
+                        break;
+                    case 'distance definition':
+                        rowPattern.operand1.index = rowObj.index
+                        rowPattern.operand1.length++
+                        break;
+                    case 'user identifier':
+                        if (rowPattern.operand1.index) {
+                            rowPattern.operand1.length++
+                        }
+                        else operand1Calc(rowObj)
+                        break;
+                }
+            }
+            return rowPattern
+        }
+        if (row.length === 3 && row[1].type.startsWith('type')) {
+            for (const rowObj of row) {
+                switch (rowObj.type) {
+                    case 'user identifier':
+                        mnemonicCalc(rowObj)
+                        break;
+                    case 'type byte':
+                    case 'type 2 bytes':
+                    case 'type 4 bytes':
+                        operand1Calc(rowObj)
+                        break;
+                    case 'string':
+                    case 'binary':
+                    case 'hexadecimal':
+                    case 'decimal':
+                        operand2Calc(rowObj)
+                        break;
+                }
+            }
+            return rowPattern
+        }
         for (const rowObj of row) {
             switch (rowObj.type) {
                 case 'identifier type byte':
@@ -81,7 +123,12 @@ class Parser {
                     }
                     break;
                 case 'user identifier':
-                    rowPattern.label++
+                    if (rowPattern.mnemocode.index !== 0 && rowPattern.mnemocode.length !== 0) {
+                        operand1Calc(rowObj)
+                    }
+                    else {
+                        rowPattern.label++
+                    }
                     break;
                 case 'assume':
                     return rowPattern
@@ -90,9 +137,9 @@ class Parser {
                 case 'type 4 bytes':
                 case 'directive':
                 case 'instruction':
-                case 'data segment':
                 case 'end directive':
-                case 'code segment':
+                case 'segment directive':
+                case 'end of segment':
                     mnemonicCalc(rowObj)
                     break;
                 case '8-bit register':
@@ -101,21 +148,18 @@ class Parser {
                 case 'decimal':
                 case 'binary':
                 case 'hexadecimal':
-                case 'end of segment':
-                case 'distance definition':
-                case 'segment directive':
                 case 'segment encoding':
+                case 'string':
                     if (rowPattern.operand1.index === 0 && rowPattern.operand1.length === 0) {
                         operand1Calc(rowObj)
                     } else operand2Calc(rowObj)
                     break;
-                case 'string':
-                    rowPattern.operand1.index = rowObj.index
-                    rowPattern.operand1.length++
-                    break;
+                // case 'string':
+                //     rowPattern.operand1.index = rowObj.index
+                //     rowPattern.operand1.length++
+                //     break;
             }
         }
-        debugger
         return rowPattern
     }
 

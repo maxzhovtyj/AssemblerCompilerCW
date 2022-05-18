@@ -46,12 +46,6 @@ class Data {
         if (/^[\d]+d?$/g.test(word)) {
             return 'decimal'
         }
-        if (/^code/g.test(word)) {
-            return 'code segment'
-        }
-        if (/^data/g.test(word)) {
-            return 'data segment'
-        }
         let type = null
 
         this.data.forEach(item => {
@@ -61,7 +55,11 @@ class Data {
                         if (word === char) {
                             if (item["value"] === '32-bit data register' && Data.fl) {
                                 type = "32-bit address register"
-                            } else type = item["value"]
+                            }
+                            else if (item["value"] === 'general purpose registers' && Data.fl) {
+                                type = "32-bit address register"
+                            }
+                            else type = item["value"]
                         }
                     })
                 }
@@ -70,9 +68,6 @@ class Data {
         if (type !== null) return type
 
         return 'user identifier'
-    }
-    findType(word, index) {
-
     }
 }
 
