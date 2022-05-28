@@ -19,32 +19,32 @@ Filename: lst1.txt
 011		0000		0		Code1 segment
 012		0000		0		Assume cs : Code1 , ds : Data1 , gs : Data2
 013		0000		0		begin :
-014		0000		0		nop
-015		0000		0		nop
-016		0000		0		nop
-017		0000		0		imul bl
-018		0000		0		mul byte ptr gs : [ ebx + ecx ]
-019		0000		0		idiv bl
-020		0000		0		or byte ptr ds : [ edx + esi ] , 111b
-021		0000		0		sub dword ptr [ ebx + ecx ] , eax
-022		0000		0		cmp eax , 0AB142h
-023		0000		0		Jmp short label1
-024		0000		0		label1 :
-025		0000		0		cmp eax , 'text'
-026		0000		0		jnb label2
-027		0000		0		adc al , byte ptr [ edx + esi ]
-028		0000		0		jmp short label1
-029		0000		0		label2 :
-030		0000		0		cmp al , 111b
-031		0000		0		jnb label2
-032		0000		0		nop
-033		0000		0		nop
-034		0000		0		Code1 ends
+014		0000		1		nop
+015		0001		1		nop
+016		0002		1		nop
+017		0003		2		imul bl
+018		0005		0		mul byte ptr gs : [ ebx + ecx ]
+019		0005		2		idiv bl
+020		0007		0		or byte ptr ds : [ edx + esi ] , 111b
+021		0007		0		sub dword ptr [ ebx + ecx ] , eax
+022		0007		0		cmp eax , 0AB142h
+023		0007		2		jmp label1
+024		0009		0		label1 :
+025		0009		0		cmp eax , 'text'
+026		0009		0		jnb label2
+027		0009		0		adc al , byte ptr [ edx + esi ]
+028		0009		2		jmp short label1
+029		000b		0		label2 :
+030		000b		0		cmp al , 111b
+031		000b		0		jnb label2
+032		000b		1		nop
+033		000c		1		nop
+034		000d		0		Code1 ends
 
-035		0000		0		end
+035		000d		0		end
 
 Segment	Size
-Data1	13
+Data1	d
 Data2	7
 
 Errors: 0

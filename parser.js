@@ -1,8 +1,6 @@
-const lst1FileUrl = require('./index')
 const fs = require('fs')
 const data = require('./data')
 const Error = require('./error')
-const handler = require('./segmentHandler')
 
 class Parser {
     frame = '='.repeat(61)
@@ -209,24 +207,39 @@ class Parser {
         })
         let dataSegmentIndex = 0
         let size = 0
-        let address = 0;
-        let fl = 0
+        let address = 0
+        let dataFlag = 0
+        let codeFlag = 0
         filtered.forEach((row, index) => {
-            let tableIndex = '';
+            let tableIndex;
             (index <= 9) ? tableIndex = `00${index}` : tableIndex = `0${index}`
             row = row.join(' ')
-            if (fl === 0 && row.match(/data(\d)?\ssegment\b/gi)) {
+            if (dataFlag === 0 && row.match(/data(\d)?\ssegment\b/gi)) {
                 Number.isInteger(Number(row[4])) ? dataSegmentIndex = row[4] : dataSegmentIndex = 0
-                fl = 1
+                dataFlag = 1
             }
-            if (fl === 1) {
-                [, size] = data.rowHandler(row)
+            if (dataFlag === 1) {
+                [, size] = data.dataRowHandler(row)
             }
-            if (fl === 1 && row.match(/data(\d)?\sends\b/gi)) {
+            if (dataFlag === 1 && row.match(/data(\d)?\sends\b/gi)) {
                 if (row[4] !== dataSegmentIndex) {
                     Error.errorCall()
                 }
-                fl = 0
+                dataFlag = 0
+            }
+
+            if (codeFlag === 0 && row.match(/code(\d)?\ssegment\b/gi)) {
+                Number.isInteger(Number(row[4])) ? dataSegmentIndex = row[4] : dataSegmentIndex = 0
+                codeFlag = 1
+            }
+            if (codeFlag === 1) {
+                size = data.codeRowHandler(row)
+            }
+            if (codeFlag === 1 && row.match(/code(\d)?\sends\b/gi)) {
+                if (row[4] !== dataSegmentIndex) {
+                    Error.errorCall()
+                }
+                codeFlag = 0
             }
 
             let hexAddress = address.toString(16)
@@ -241,9 +254,8 @@ class Parser {
             address += size
             if (row.startsWith('Data') && row.includes('ends')) {
                 if (dataSegmentSize === 0) {
-                    dataSegmentSize = `${row.slice(0, 5)}\t${address}`
-                }
-                else dataSegment1Size = `${row.slice(0, 5)}\t${address}`
+                    dataSegmentSize = `${row.slice(0, 5)}\t${address.toString(16)}`
+                } else dataSegment1Size = `${row.slice(0, 5)}\t${address.toString(16)}`
                 address = 0;
             }
         })

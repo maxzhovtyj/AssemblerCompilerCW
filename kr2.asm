@@ -23,7 +23,7 @@ begin:
 	or 			byte ptr ds:[edx + esi], 111b
 	sub 		dword ptr [ebx + ecx], eax
 	cmp 		eax, 0AB142h
-	Jmp			short label1
+	jmp			label1
 label1:
 	cmp 		eax, 'text'
 	jnb 		label2

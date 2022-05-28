@@ -29,34 +29,32 @@ class Data {
         {segmentEnd: ['ends'], value: 'end of segment'}
     ]
 
-    rowType = {
+    dataRowType = {
         segmentInit: [['user identifier'], ['segment directive', 'end of segment']],
         varInit: [['user identifier'], ['type byte', 'type 2 bytes', 'type 4 bytes'], ['decimal', 'binary', 'hexadecimal', 'string']]
     }
 
-    rowHandler(row) {
+    dataRowHandler(row) {
         let typeArr = []
         row = row.split(' ')
         row.forEach(word => {
             typeArr.push(this.findOne(word))
         })
-        console.log(typeArr)
-        if (this.rowType.varInit[0].includes(typeArr[0])
-            && this.rowType.varInit[1].includes(typeArr[1])
-            && this.rowType.varInit[2].includes(typeArr[2])) {
+        if (this.dataRowType.varInit[0].includes(typeArr[0])
+            && this.dataRowType.varInit[1].includes(typeArr[1])
+            && this.dataRowType.varInit[2].includes(typeArr[2])) {
             let size = 0
             if (typeArr[1] === 'type byte') {
                 if (row[2].startsWith("'") && row[2].endsWith("'")) {
                     size = row[2].length - 2
-                }
-                else size = 1
+                } else size = 1
             }
             if (typeArr[1] === 'type 2 bytes') size = 2
             if (typeArr[1] === 'type 4 bytes') size = 4
             return ['var init', size]
         }
-        if (this.rowType.segmentInit[0].includes(typeArr[0])
-            && this.rowType.segmentInit[1].includes(typeArr[1])) {
+        if (this.dataRowType.segmentInit[0].includes(typeArr[0])
+            && this.dataRowType.segmentInit[1].includes(typeArr[1])) {
             return ['segment init', 0]
         }
 
@@ -64,6 +62,82 @@ class Data {
         Error.errorCall()
         return null
     }
+
+    codeRowType = {
+        imulInstruction: [['instruction'], ['8-bit register', '32-bit data register']],
+        idivInstruction: [['instruction'], ['8-bit register', '32-bit data register']],
+        jmpInstruction: [['instruction'], ['distance definition', 'user identifier']],
+        jnbInstruction: [['instruction'], ['user identifier']],
+    }
+    codeRowHandler(row) {
+        let size = 0;
+        let typeArr = []
+        row = row.split(' ')
+        row.forEach(word => {
+            typeArr.push(this.findOne(word))
+        })
+        if (typeArr[1] === 'segment directive'
+            || typeArr[1] === 'end of segment'
+            || row[0].toLowerCase() === 'assume'
+            || row[0].match(/begin?/gi)) {
+            return size
+        }
+
+        if (typeArr[0] === 'user identifier' && typeArr[1] === 'character') {
+            return size
+        }
+
+        if (row.length === 1 && row[0] === 'nop' && typeArr[0] === 'instruction') {
+            return 1
+        }
+
+        if (typeArr[0] === 'instruction') {
+            switch (row[0]) {
+                case 'imul':
+                    if (this.codeRowType.imulInstruction[1].includes(typeArr[1])
+                    && row.length === this.codeRowType.imulInstruction.length) {
+                        return 2
+                    }
+                    Error.errorCall()
+                    break;
+                case 'idiv':
+                    if (this.codeRowType.idivInstruction[1].includes(typeArr[1])) {
+                        return 2
+                    }
+                    Error.errorCall()
+                    break;
+                case 'jmp':
+                    if (row.length === 3) {
+                        if (this.codeRowType.jmpInstruction[1].includes(typeArr[1])
+                        && this.codeRowType.jmpInstruction[1].includes(typeArr[2])) {
+                            return 2
+                        }
+                        Error.errorCall()
+                        break
+                    }
+                    if (this.codeRowType.jmpInstruction[1].includes(typeArr[1])) {
+                        return 2
+                    }
+                    Error.errorCall()
+                    break;
+                case 'jnb':
+                    if (this.codeRowType.jnbInstruction[1].includes(typeArr[1])) {
+                        return 2
+                    }
+                    Error.errorCall()
+                    break;
+                default:
+                    // console.log(typeArr)
+                    // Error.errorCall()
+                    break;
+            }
+        }
+
+        // console.log(typeArr)
+        // Error.errorCall()
+        return 0
+    }
+
 
     static fl
 

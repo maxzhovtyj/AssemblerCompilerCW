@@ -316,17 +316,16 @@ No - Lexeme   - Length -  Type
 |   0   |   1   |   1   |  2  |  1  |  4  |  1  |  0  |  0  |
 =============================================================
 
-Jmp short label1
+jmp label1
 =============================================================
 No - Lexeme   - Length -  Type  
 =============================================================
 1. jmp - Length: 3 - Type: instruction
-2. short - Length: 5 - Type: distance definition
-3. label1 - Length: 6 - Type: user identifier
+2. label1 - Length: 6 - Type: user identifier
 =============================================================
 | Label | Mnemonic code | Operand 1 | Operand 2 | Operand 3 |
 =============================================================
-|   0   |   1   |   1   |  2  |  2  |  0  |  0  |  0  |  0  |
+|   0   |   1   |   1   |  2  |  1  |  0  |  0  |  0  |  0  |
 =============================================================
 
 label1 :
