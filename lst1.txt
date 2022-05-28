@@ -1,0 +1,50 @@
+Assembly translator STEP 1
+Written by Zhovtaniuk Maksym KV-03
+Filename: lst1.txt
+1-line, 2-address, 3-size, 4-assembly operator
+
+000		0000		0		Data1 segment
+001		0000		6		String db 'String'
+002		0006		1		Val db 101b
+003		0007		2		Vw dw 1234d
+004		0009		4		Vd dd 0d7856fdah
+005		000d		0		Data1 ends
+
+006		0000		0		Data2 segment
+007		0000		2		Var dw 123
+008		0002		4		QWERTY dd 67ff89h
+009		0006		1		Zxcv db 89h
+010		0007		0		Data2 ends
+
+011		0000		0		Code1 segment
+012		0000		0		Assume cs : Code1 , ds : Data1 , gs : Data2
+013		0000		0		begin :
+014		0000		0		nop
+015		0000		0		nop
+016		0000		0		nop
+017		0000		0		imul bl
+018		0000		0		mul byte ptr gs : [ ebx + ecx ]
+019		0000		0		idiv bl
+020		0000		0		or byte ptr ds : [ edx + esi ] , 111b
+021		0000		0		sub dword ptr [ ebx + ecx ] , eax
+022		0000		0		cmp eax , 0AB142h
+023		0000		0		Jmp short label1
+024		0000		0		label1 :
+025		0000		0		cmp eax , 'text'
+026		0000		0		jnb label2
+027		0000		0		adc al , byte ptr [ edx + esi ]
+028		0000		0		jmp short label1
+029		0000		0		label2 :
+030		0000		0		cmp al , 111b
+031		0000		0		jnb label2
+032		0000		0		nop
+033		0000		0		nop
+034		0000		0		Code1 ends
+
+035		0000		0		end
+
+Segment	Size
+Data1	13
+Data2	7
+
+Errors: 0

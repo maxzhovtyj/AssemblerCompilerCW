@@ -1,10 +1,14 @@
+const lst1FileUrl = require('./index')
+const fs = require('fs')
 const data = require('./data')
+const Error = require('./error')
+const handler = require('./segmentHandler')
 
 class Parser {
-    frame = '='.repeat(89)
-    table = `\n${this.frame}\n|\tNo\t|\t\t\tLexeme\t\t\t\t\t|\tLength\t\t|\t\tType\t\t\t\t|\n${this.frame}`
+    frame = '='.repeat(61)
+    table = `\n${this.frame}\nNo - Lexeme   - Length -  Type  \n${this.frame}`
 
-    lexemeCount = `\n| Label |\t\t\tMnemonic code\t\t\t|\tOperand 1\t|\t\tOperand 2\t\t\t|\n${this.frame}\n`
+    lexemeCount = `\n| Label | Mnemonic code | Operand 1 | Operand 2 | Operand 3 |\n${this.frame}\n`
 
     rowAnalyser(row) {
         return row.map(str => str
@@ -14,19 +18,6 @@ class Parser {
             .flat())
             .flat()
             .filter(word => word !== '')
-    }
-
-    tabCount(word, type = "word") {
-        let len = word.length
-        switch (type) {
-            case "word":
-                let wordTabs = Math.round((36 - len) / 4)
-                return `${'\t'.repeat(wordTabs)}`
-            case "type":
-                let typeTabs = Math.round((28 - len) / 4)
-                if (word.length >= 23) return `\t`
-                return `${'\t'.repeat(typeTabs)}`
-        }
     }
 
     mnemonicAnalyze(row) {
@@ -41,6 +32,10 @@ class Parser {
                 length: 0
             },
             operand2: {
+                index: 0,
+                length: 0
+            },
+            operand3: {
                 index: 0,
                 length: 0
             }
@@ -59,7 +54,6 @@ class Parser {
         }
         let operandBackup = {index: 0, length: 0}
         if (row[0].word === 'jmp' || row[0].word === 'jnb') {
-            console.log('hi')
             for (const rowObj of row) {
                 switch (rowObj.type) {
                     case 'instruction':
@@ -72,8 +66,7 @@ class Parser {
                     case 'user identifier':
                         if (rowPattern.operand1.index) {
                             rowPattern.operand1.length++
-                        }
-                        else operand1Calc(rowObj)
+                        } else operand1Calc(rowObj)
                         break;
                 }
             }
@@ -96,6 +89,34 @@ class Parser {
                     case 'decimal':
                         operand2Calc(rowObj)
                         break;
+                }
+            }
+            return rowPattern
+        }
+        if (row[0].type === 'assume') {
+            mnemonicCalc(row[0])
+            rowPattern.operand1.index = row[1].index;
+            let fl = -1
+            for (let i = 1; i < row.length; i++) {
+                if (row[i].word === ',') {
+                    if (fl === 0) {
+                        rowPattern.operand3.index = row[i].index + 1
+                        fl = 1
+                    }
+                    if (fl === -1) {
+                        rowPattern.operand2.index = row[i].index + 1
+                        fl = 0
+                    }
+                    continue
+                }
+                if (fl === -1) {
+                    rowPattern.operand1.length++
+                }
+                if (fl === 0) {
+                    rowPattern.operand2.length++
+                }
+                if (fl === 1) {
+                    rowPattern.operand3.length++
                 }
             }
             return rowPattern
@@ -125,13 +146,10 @@ class Parser {
                 case 'user identifier':
                     if (rowPattern.mnemocode.index !== 0 && rowPattern.mnemocode.length !== 0) {
                         operand1Calc(rowObj)
-                    }
-                    else {
+                    } else {
                         rowPattern.label++
                     }
                     break;
-                case 'assume':
-                    return rowPattern
                 case 'type byte':
                 case 'type 2 bytes':
                 case 'type 4 bytes':
@@ -154,10 +172,6 @@ class Parser {
                         operand1Calc(rowObj)
                     } else operand2Calc(rowObj)
                     break;
-                // case 'string':
-                //     rowPattern.operand1.index = rowObj.index
-                //     rowPattern.operand1.length++
-                //     break;
             }
         }
         return rowPattern
@@ -172,14 +186,68 @@ class Parser {
             let type = data.findOne(word)
             rows.push({index: index + 1, word, type})
             let tableRow =
-                `|\t${index + 1}\t|${word}${this.tabCount(word)}|\t\t${word.length}\t\t|${type}${this.tabCount(type, 'type')}|`
+                `${index + 1}. ${word} - Length: ${word.length} - Type: ${type}`
             parsedInTable += '\n' + tableRow
         })
-        const {label, mnemocode, operand1, operand2} = this.mnemonicAnalyze(rows)
-        let tableBottom = `|\t${label}\t|\t\t${mnemocode.index}\t\t\t|\t\t${mnemocode.length}\t\t|\t${operand1.index}\t|\t${operand1.length}\t|\t${operand2.index}\t\t\t|\t${operand2.length}\t\t|`
+        const {label, mnemocode, operand1, operand2, operand3} = this.mnemonicAnalyze(rows)
+        let tableBottom = `|   ${label}   |   ${mnemocode.index}   |   ${mnemocode.length}   |  ${operand1.index}  |  ${operand1.length}  |  ${operand2.index}  |  ${operand2.length}  |  ${operand3.index}  |  ${operand3.length}  |`
         let rowTop = row.join(' ') + this.table + parsedInTable + '\n' + this.frame
         let rowBottom = this.lexemeCount + tableBottom + '\n' + this.frame + '\n\n'
         return rowTop + rowBottom
+    }
+
+    lstWriter(content) {
+        let dataSegmentSize = 0
+        let dataSegment1Size = 0
+        content = content.split('\n')
+            .filter(item => item !== '' && item !== ' ')
+            .map(str => str.replaceAll(/[\t]/g, ' '))
+        let filtered = []
+        content.forEach((row) => {
+            let tmp = row.split(/[ ](?=[^\]]*?(?:\[|$))/g)
+            filtered.push(this.rowAnalyser(tmp))
+        })
+        let dataSegmentIndex = 0
+        let size = 0
+        let address = 0;
+        let fl = 0
+        filtered.forEach((row, index) => {
+            let tableIndex = '';
+            (index <= 9) ? tableIndex = `00${index}` : tableIndex = `0${index}`
+            row = row.join(' ')
+            if (fl === 0 && row.match(/data(\d)?\ssegment\b/gi)) {
+                Number.isInteger(Number(row[4])) ? dataSegmentIndex = row[4] : dataSegmentIndex = 0
+                fl = 1
+            }
+            if (fl === 1) {
+                [, size] = data.rowHandler(row)
+            }
+            if (fl === 1 && row.match(/data(\d)?\sends\b/gi)) {
+                if (row[4] !== dataSegmentIndex) {
+                    Error.errorCall()
+                }
+                fl = 0
+            }
+
+            let hexAddress = address.toString(16)
+            let hexStr = ''
+            if (hexAddress.length === 1) hexStr = `000${hexAddress}`
+            if (hexAddress.length === 2) hexStr = `00${hexAddress}`
+            if (hexAddress.length === 3) hexStr = `0${hexAddress}`
+            if (hexAddress.length === 4) hexStr = `${hexAddress}`
+            const hexPrevNum = size.toString(16)
+            let res = `${tableIndex}\t\t${hexStr}\t\t${hexPrevNum}\t\t${row}\n${row.includes('ends') ? '\n' : ''}`
+            fs.appendFileSync('./lst1.txt', res)
+            address += size
+            if (row.startsWith('Data') && row.includes('ends')) {
+                if (dataSegmentSize === 0) {
+                    dataSegmentSize = `${row.slice(0, 5)}\t${address}`
+                }
+                else dataSegment1Size = `${row.slice(0, 5)}\t${address}`
+                address = 0;
+            }
+        })
+        return [dataSegmentSize, dataSegment1Size]
     }
 }
 

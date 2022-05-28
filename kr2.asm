@@ -1,16 +1,14 @@
-.386
-
-Data1 		segment	
+Data1 		segment
 	String		db		'String'
-	Val				db		101b
-	Vw 				dw 		1234d
-	Vd 				dd 		0d7856fdah
+	Val			db		101b
+	Vw 			dw 		1234d
+	Vd 			dd 		0d7856fdah
 Data1 		ends
 
 Data2 		segment
-	Var				dw 		123
+	Var			dw 		123
 	QWERTY		dd		67ff89h
-	Zxcv			db		89h
+	Zxcv		db		89h
 Data2 		ends
 
 Code1 		segment
