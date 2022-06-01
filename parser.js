@@ -1,5 +1,5 @@
 const fs = require('fs')
-const data = require('./data')
+const {data} = require('./data')
 const Error = require('./error')
 
 class Parser {
@@ -194,6 +194,8 @@ class Parser {
         return rowTop + rowBottom
     }
 
+    static segmentName
+
     lstWriter(content) {
         let dataSegmentSize = 0
         let dataSegment1Size = 0
@@ -211,6 +213,7 @@ class Parser {
         let address = 0
         let dataFlag = 0
         let codeFlag = 0
+
         filtered.forEach((row, index) => {
             let tableIndex;
             (index <= 9) ? tableIndex = `00${index}` : tableIndex = `0${index}`
@@ -218,9 +221,10 @@ class Parser {
             if (dataFlag === 0 && row.match(/data(\d)?\ssegment\b/gi)) {
                 Number.isInteger(Number(row[4])) ? dataSegmentIndex = row[4] : dataSegmentIndex = 0
                 dataFlag = 1
+                Parser.segmentName = row.split(' ')[0]
             }
             if (dataFlag === 1) {
-                [, size] = data.dataRowHandler(row)
+                [, size] = data.dataRowHandler(row, Parser.segmentName, address)
             }
             if (dataFlag === 1 && row.match(/data(\d)?\sends\b/gi)) {
                 if (row[4] !== dataSegmentIndex) {
@@ -232,9 +236,10 @@ class Parser {
             if (codeFlag === 0 && row.match(/code(\d)?\ssegment\b/gi)) {
                 Number.isInteger(Number(row[4])) ? dataSegmentIndex = row[4] : dataSegmentIndex = 0
                 codeFlag = 1
+                Parser.segmentName = row.split(' ')[0]
             }
             if (codeFlag === 1) {
-                size = data.codeRowHandler(row)
+                size = data.codeRowHandler(row, Parser.segmentName, address)
             }
             if (codeFlag === 1 && row.match(/code(\d)?\sends\b/gi)) {
                 if (row[4] !== dataSegmentIndex) {
@@ -270,4 +275,6 @@ class Parser {
     }
 }
 
-module.exports = new Parser()
+let segmentName = Parser.segmentName
+let parser = new Parser()
+module.exports = {parser, segmentName}

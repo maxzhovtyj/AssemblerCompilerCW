@@ -31,19 +31,33 @@ Filename: lst1.txt
 023		0017		2		jmp short label1
 024		0019		0		label1 :
 025		0019		6		cmp ebx , 'text'
-026		001F		3		adc al , byte ptr [ edx + esi ]
-027		0022		2		jmp label1
-028		0024		0		label2 :
-029		0024		2		cmp al , 111b
-030		0026		1		nop
-031		0027		1		nop
-032		0028		0		Code1 ends
+026		001F		6		jnb label2
+027		0025		3		adc al , byte ptr [ edx + esi ]
+028		0028		2		jmp label1
+029		002A		0		label2 :
+030		002A		2		cmp al , 111b
+031		002C		2		jnb label2
+032		002E		1		nop
+033		002F		1		nop
+034		0030		0		Code1 ends
 
-033		0000		0		end
+035		0000		0		end
 
 Segment	Size
 DATA1	000C
 DATA2	0007
-CODE1	0028
+CODE1	0030
+
+Name	Type	Address	Segment
+String	BYTE	0000	Data1
+Val		BYTE	0005	Data1
+Vw		WORD	0006	Data1
+Vd		DWORD	0008	Data1
+Var		WORD	0000	Data2
+QWERTY	DWORD	0002	Data2
+Zxcv	BYTE	0006	Data2
+begin	NEAR	0000	Code1
+label1	NEAR	0019	Code1
+label2	NEAR	002A	Code1
 
 Errors: 0

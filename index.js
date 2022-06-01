@@ -1,7 +1,7 @@
 const fs = require("fs")
-const config = require('./parser')
+const {parser} = require('./parser')
 const Error = require('./error')
-const Parser = require('./parser')
+const {existingLabels, usedLabels, varDefinitions} = require('./data')
 
 const asmFileUrl = './kr2.asm'
 const lstFileUrl = './lst0.txt'
@@ -25,18 +25,34 @@ let lst2Res = ''
 fs.writeFileSync(lst1FileUrl, topContent + description)
 parsed.forEach((row, index) => {
     let tmp = row.split(/[ ](?=[^\]]*?(?:\[|$))/g).filter(str => str !== '')
-    lstRes += config.getInfo(tmp)
+    lstRes += parser.getInfo(tmp)
 })
 
-const [dataSegmentSize, dataSegment1Size, codeSegmentSize] = config.lstWriter(str)
+const [dataSegmentSize, dataSegment1Size, codeSegmentSize] = parser.lstWriter(str)
 
-let lst1Errors = `\nErrors: ${Error.errorCount}`
 fs.writeFileSync(lstFileUrl, lstRes)
 fs.appendFileSync(lst1FileUrl, '\n' + segmentSize
     + dataSegmentSize.toString(16).toUpperCase()
     + '\n' + dataSegment1Size.toString(16).toUpperCase()
     + '\n' + codeSegmentSize.toString(16).toUpperCase() + '\n')
-fs.appendFileSync(lst1FileUrl, lst1Errors)
-fs.writeFileSync(lst2FileUrl, lst2Res)
 
-// todo jnb and jmp instruction
+if (!eqSet(existingLabels, usedLabels)) Error.errorCall()
+
+let definitionsTable = `\nName\tType\tAddress\tSegment\n`
+fs.appendFileSync(lst1FileUrl, definitionsTable)
+for (let i = 0; i < varDefinitions.length; i++) {
+    fs.appendFileSync(lst1FileUrl, `${varDefinitions[i] + '\n'}`)
+}
+
+let lst1Errors = `\nErrors: ${Error.errorCount}`
+fs.appendFileSync(lst1FileUrl, lst1Errors)
+
+fs.writeFileSync(lst2FileUrl, lst2Res)
+function eqSet(existingSet, usedSet) {
+    for (let a of usedSet) {
+        if (!existingSet.has(a)) {
+            return false
+        }
+    }
+    return true
+}

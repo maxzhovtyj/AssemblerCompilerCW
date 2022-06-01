@@ -33,8 +33,11 @@ class Data {
         varInit: [['user identifier'], ['type byte', 'type 2 bytes', 'type 4 bytes'], ['decimal', 'binary', 'hexadecimal', 'string']]
     }
 
-    dataRowHandler(row) {
+    static varDefinitions = []
+
+    dataRowHandler(row, segmentName, address) {
         let typeArr = []
+        let type = ''
         row = row.split(' ')
         row.forEach(word => {
             typeArr.push(this.findOne(word))
@@ -44,17 +47,25 @@ class Data {
             && this.dataRowType.varInit[2].includes(typeArr[2])) {
             let size = 0
             if (typeArr[1] === 'type byte') {
+                type = 'BYTE'
                 if (row[2].startsWith("'") && row[2].endsWith("'")) {
                     size = row[2].length - 2
                 } else size = 1
             }
-            if (typeArr[1] === 'type 2 bytes') size = 2
-            if (typeArr[1] === 'type 4 bytes') size = 4
-            return ['var init', size]
+            if (typeArr[1] === 'type 2 bytes') {
+                size = 2
+                type = 'WORD'
+            }
+            if (typeArr[1] === 'type 4 bytes') {
+                size = 4
+                type = 'DWORD'
+            }
+            this.addVarDefinition(row[0], type, address, segmentName)
+            return [type, size]
         }
         if (this.dataRowType.segmentInit[0].includes(typeArr[0])
             && this.dataRowType.segmentInit[1].includes(typeArr[1])) {
-            return ['segment init', 0]
+            return [type, 0]
         }
         console.log(row)
         console.log(typeArr)
@@ -65,7 +76,8 @@ class Data {
     codeRowType = {
         imulInstruction: [['instruction'], ['8-bit register', '32-bit data register']],
         idivInstruction: [['instruction'], ['8-bit register', '32-bit data register']],
-        jmpInstruction: [['instruction'], ['distance definition', 'user identifier']],
+        jmpInstruction: [['instruction'], ['user identifier']],
+        jmpShortInstruction: [['instruction'], ['distance definition'], ['user identifier']],
         jnbInstruction: [['instruction'], ['user identifier']],
         mulInstruction: [
             ['instruction'],
@@ -147,7 +159,12 @@ class Data {
         ]
     }
 
-    codeRowHandler(row) {
+    labelPos = {}
+
+    static existingLabels = new Set()
+    static usedLabels = new Set()
+
+    codeRowHandler(row, segmentName, address) {
         let size = 0;
         let typeArr = []
         row = row.split(' ')
@@ -156,12 +173,14 @@ class Data {
         })
         if (typeArr[1] === 'segment directive'
             || typeArr[1] === 'end of segment'
-            || row[0].toLowerCase() === 'assume'
-            || row[0].match(/begin?/gi)) {
+            || row[0].toLowerCase() === 'assume') {
             return size
         }
 
         if (typeArr[0] === 'user identifier' && typeArr[1] === 'character') {
+            this.labelPos[row[0].toString()] = 1
+            Data.existingLabels.add(row[0])
+            this.addVarDefinition(row[0], "NEAR", address, segmentName)
             return size
         }
 
@@ -186,25 +205,51 @@ class Data {
                     Error.errorCall()
                     break;
                 case 'jmp':
-                    if (row.length === 3) {
-                        if (this.codeRowType.jmpInstruction[1].includes(typeArr[1])
-                            && this.codeRowType.jmpInstruction[1].includes(typeArr[2])) {
-                            return 2
+                    if (row.length === 3 && row[1] === 'short') {
+                        for (let i = 0; i < typeArr.length; i++) {
+                            if (!this.codeRowType.jmpShortInstruction[i].includes(typeArr[i])) {
+                                console.log(row)
+                                console.log(typeArr)
+                                Error.errorCall()
+                                return 0
+                            }
                         }
-                        Error.errorCall()
-                        break
-                    }
-                    if (this.codeRowType.jmpInstruction[1].includes(typeArr[1])) {
+                        if (typeArr[1] === 'user identifier') {
+                            Data.usedLabels.add(row[1])
+                        } else if (typeArr[2] === 'user identifier') {
+                            Data.usedLabels.add(row[2])
+                        }
                         return 2
+                    }
+                    if (row.length === 2) {
+                        for (let i = 0; i < typeArr.length; i++) {
+                            if (!this.codeRowType.jmpInstruction[i].includes(typeArr[i])) {
+                                console.log(row)
+                                console.log(typeArr)
+                                Error.errorCall()
+                                return 0
+                            }
+                        }
+                        Data.usedLabels.add(row[1])
+                        if (this.labelPos[row[1]] === 1) {
+                            return 2
+                        } else return 5
                     }
                     Error.errorCall()
                     break;
                 case 'jnb':
-                    if (this.codeRowType.jnbInstruction[1].includes(typeArr[1])) {
-                        return 2
+                    for (let i = 0; i < typeArr.length; i++) {
+                        if (!this.codeRowType.jnbInstruction[i].includes(typeArr[i])) {
+                            console.log(row)
+                            console.log(typeArr)
+                            Error.errorCall()
+                            return 0
+                        }
                     }
-                    Error.errorCall()
-                    break;
+                    Data.usedLabels.add(row[1])
+                    if (this.labelPos[row[1]] === 1) {
+                        return 2
+                    } else return 6
                 case 'mul':
                     if (typeArr.length === 10) {
                         if (typeArr[3] === 'segment register' && row[4] === 'character') {
@@ -273,8 +318,7 @@ class Data {
                         if (!row[11].endsWith('b')) {
                             Error.errorCall()
                             return 0
-                        }
-                        else return 4
+                        } else return 4
                     }
                     if (row[1] === 'dword') {
                         if (row[11].endsWith('d')) return 7
@@ -325,8 +369,7 @@ class Data {
                         if (this.data[0].bit8.includes(row[1]) || this.data[1].bit32.includes(row[1])) {
                             if (typeArr[3] === 'identifier type byte' || typeArr[3] === 'identifier 4 type bytes') {
                                 return 3
-                            }
-                            else {
+                            } else {
                                 console.log("Operands types must match")
                                 Error.errorCall()
                             }
@@ -350,8 +393,7 @@ class Data {
                         if (this.data[0].bit8.includes(row[1]) || this.data[1].bit32.includes(row[1])) {
                             if (typeArr[3] === 'identifier type byte' || typeArr[3] === 'identifier type 4 bytes') {
                                 return 4
-                            }
-                            else {
+                            } else {
                                 console.log("Operands types must match")
                                 Error.errorCall()
                             }
@@ -373,6 +415,16 @@ class Data {
         return 0
     }
 
+    addVarDefinition(name, type, address, segment) {
+        address = address.toString(16).toUpperCase()
+
+        if (address.length === 1) address = `000${address}`
+        if (address.length === 2) address = `00${address}`
+        if (address.length === 3) address = `0${address}`
+        if (address.length === 4) address = `${address}`
+
+        Data.varDefinitions.push(`${name}${name.length <= 3 ? '\t' : ''}\t${type}\t${address}\t${segment}`)
+    }
 
     static fl
 
@@ -415,4 +467,9 @@ class Data {
     }
 }
 
-module.exports = new Data()
+let existingLabels = Data.existingLabels
+let usedLabels = Data.usedLabels
+let varDefinitions = Data.varDefinitions
+data = new Data()
+
+module.exports = {data, existingLabels, usedLabels, varDefinitions}
