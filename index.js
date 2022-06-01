@@ -27,13 +27,16 @@ parsed.forEach((row, index) => {
     let tmp = row.split(/[ ](?=[^\]]*?(?:\[|$))/g).filter(str => str !== '')
     lstRes += config.getInfo(tmp)
 })
-const [dataSegmentSize, dataSegment1Size] = config.lstWriter(str)
+
+const [dataSegmentSize, dataSegment1Size, codeSegmentSize] = config.lstWriter(str)
 
 let lst1Errors = `\nErrors: ${Error.errorCount}`
 fs.writeFileSync(lstFileUrl, lstRes)
-fs.appendFileSync(lst1FileUrl, '\n' + segmentSize + dataSegmentSize.toString(16) + '\n' + dataSegment1Size.toString(16) + '\n')
+fs.appendFileSync(lst1FileUrl, '\n' + segmentSize
+    + dataSegmentSize.toString(16).toUpperCase()
+    + '\n' + dataSegment1Size.toString(16).toUpperCase()
+    + '\n' + codeSegmentSize.toString(16).toUpperCase() + '\n')
 fs.appendFileSync(lst1FileUrl, lst1Errors)
 fs.writeFileSync(lst2FileUrl, lst2Res)
 
-// todo виявлення помилок
-// todo яку використовувати директиву???
+// todo jnb and jmp instruction

@@ -4,11 +4,11 @@ Filename: lst1.txt
 1-line, 2-address, 3-size, 4-assembly operator
 
 000		0000		0		Data1 segment
-001		0000		6		String db 'String'
-002		0006		1		Val db 101b
-003		0007		2		Vw dw 1234d
-004		0009		4		Vd dd 0d7856fdah
-005		000d		0		Data1 ends
+001		0000		5		String db 'Hello'
+002		0005		1		Val db 101b
+003		0006		2		Vw dw 1234d
+004		0008		4		Vd dd 0d7856fdah
+005		000C		0		Data1 ends
 
 006		0000		0		Data2 segment
 007		0000		2		Var dw 123
@@ -22,29 +22,28 @@ Filename: lst1.txt
 014		0000		1		nop
 015		0001		1		nop
 016		0002		1		nop
-017		0003		2		imul bl
-018		0005		0		mul byte ptr gs : [ ebx + ecx ]
-019		0005		2		idiv bl
-020		0007		0		or byte ptr ds : [ edx + esi ] , 111b
-021		0007		0		sub dword ptr [ ebx + ecx ] , eax
-022		0007		0		cmp eax , 0AB142h
-023		0007		2		jmp label1
-024		0009		0		label1 :
-025		0009		0		cmp eax , 'text'
-026		0009		0		jnb label2
-027		0009		0		adc al , byte ptr [ edx + esi ]
-028		0009		2		jmp short label1
-029		000b		0		label2 :
-030		000b		0		cmp al , 111b
-031		000b		0		jnb label2
-032		000b		1		nop
-033		000c		1		nop
-034		000d		0		Code1 ends
+017		0003		2		imul eax
+018		0005		4		mul byte ptr gs : [ ebx + ecx ]
+019		0009		2		idiv bl
+020		000B		4		or byte ptr ds : [ edx + esi ] , 111b
+021		000F		3		sub dword ptr [ ebx + ecx ] , eax
+022		0012		5		cmp eax , 01A2h
+023		0017		2		jmp short label1
+024		0019		0		label1 :
+025		0019		6		cmp ebx , 'text'
+026		001F		3		adc al , byte ptr [ edx + esi ]
+027		0022		2		jmp label1
+028		0024		0		label2 :
+029		0024		2		cmp al , 111b
+030		0026		1		nop
+031		0027		1		nop
+032		0028		0		Code1 ends
 
-035		000d		0		end
+033		0000		0		end
 
 Segment	Size
-Data1	d
-Data2	7
+DATA1	000C
+DATA2	0007
+CODE1	0028
 
 Errors: 0

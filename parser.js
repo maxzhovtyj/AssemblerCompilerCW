@@ -197,6 +197,7 @@ class Parser {
     lstWriter(content) {
         let dataSegmentSize = 0
         let dataSegment1Size = 0
+        let codeSegmentSize = 0
         content = content.split('\n')
             .filter(item => item !== '' && item !== ' ')
             .map(str => str.replaceAll(/[\t]/g, ' '))
@@ -242,7 +243,7 @@ class Parser {
                 codeFlag = 0
             }
 
-            let hexAddress = address.toString(16)
+            let hexAddress = address.toString(16).toUpperCase()
             let hexStr = ''
             if (hexAddress.length === 1) hexStr = `000${hexAddress}`
             if (hexAddress.length === 2) hexStr = `00${hexAddress}`
@@ -254,12 +255,18 @@ class Parser {
             address += size
             if (row.startsWith('Data') && row.includes('ends')) {
                 if (dataSegmentSize === 0) {
-                    dataSegmentSize = `${row.slice(0, 5)}\t${address.toString(16)}`
-                } else dataSegment1Size = `${row.slice(0, 5)}\t${address.toString(16)}`
+                    dataSegmentSize = `${row.slice(0, 5)}\t000${address.toString(16)}`
+                } else dataSegment1Size = `${row.slice(0, 5)}\t000${address.toString(16)}`
+                address = 0;
+            }
+            if (row.startsWith('Code') && row.includes('ends')) {
+                if (codeSegmentSize === 0) {
+                    codeSegmentSize = `${row.slice(0, 5)}\t00${address.toString(16)}`
+                }
                 address = 0;
             }
         })
-        return [dataSegmentSize, dataSegment1Size]
+        return [dataSegmentSize, dataSegment1Size, codeSegmentSize]
     }
 }
 
