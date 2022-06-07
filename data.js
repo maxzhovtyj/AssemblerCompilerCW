@@ -83,6 +83,16 @@ class Data {
             ['instruction'],
             ['identifier type byte', 'identifier type 2 bytes', 'identifier type 4 bytes'],
             ['identifier type definition'],
+            ['character'],
+            ['32-bit address register'],
+            ['character'],
+            ['32-bit address register'],
+            ['character'],
+        ],
+        mulInstructionPrefix: [
+            ['instruction'],
+            ['identifier type byte', 'identifier type 2 bytes', 'identifier type 4 bytes'],
+            ['identifier type definition'],
             ['segment register'],
             ['character'],
             ['character'],
@@ -133,7 +143,7 @@ class Data {
         ],
         adcInstruction: [
             ['instruction'], // adc
-            ['8-bit register', '32-bit data register'], // al || eax
+            ['8-bit register', '32-bit data register', 'general purpose registers'], // al || eax || ebi...
             ['character'], // ,
             ['identifier type byte', 'identifier type 4 bytes'], // byte || dword
             ['identifier type definition'], // ptr
@@ -145,7 +155,7 @@ class Data {
         ],
         adcInstructionPrefix: [
             ['instruction'], // adc
-            ['8-bit register', '32-bit data register'], // al || eax
+            ['8-bit register', '32-bit data register', 'general purpose registers'], // al || eax
             ['character'], // ,
             ['identifier type byte', 'identifier type 4 bytes'], // byte || dword
             ['identifier type definition'], // ptr
@@ -252,19 +262,20 @@ class Data {
                     } else return 6
                 case 'mul':
                     if (typeArr.length === 10) {
-                        if (typeArr[3] === 'segment register' && row[4] === 'character') {
-                            return 5
-                        }
                         for (let i = 0; i < typeArr.length; i++) {
-                            if (!this.codeRowType.mulInstruction[i].includes(typeArr[i])) {
+                            if (!this.codeRowType.mulInstructionPrefix[i].includes(typeArr[i])) {
                                 Error.errorCall()
                             }
                         }
+                        if (row[3] === 'ss') return 3
                         return 4
                     } else if (typeArr.length === 8) {
                         for (let i = 0; i < this.codeRowType.mulInstruction.length - 2; i++) {
                             if (!this.codeRowType.mulInstruction[i].includes(typeArr[i])) {
+                                console.log(typeArr)
+                                console.log(row)
                                 Error.errorCall();
+                                return 0
                             }
                         }
                         if (row[1] === 'byte' || row[2] === 'dword' && ['ebp', 'esp'].includes(row[6])) {
@@ -440,7 +451,7 @@ class Data {
         if (/^(0x|0X)?[a-fA-F0-9]+h$/g.test(word)) {
             return 'hexadecimal'
         }
-        if (/^[\d]+d?$/g.test(word)) {
+        if (/^-?[\d]+d?$/g.test(word)) {
             return 'decimal'
         }
 
