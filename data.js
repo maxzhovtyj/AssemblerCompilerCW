@@ -1,5 +1,5 @@
 const Error = require('./error')
-const {quotesSplit} = require("./regex");
+const {quotesSplit, stringRegex, binaryRegex, hexadecimalRegex, decimalRegex} = require("./regex");
 
 class Data {
     data = [
@@ -479,16 +479,16 @@ class Data {
     findOne(word) {
         if (word === '[') Data.fl = 1
         if (word === ']') Data.fl = 0
-        if (/^\'(.*?)\'$/g.test(word)) {
+        if (stringRegex.test(word)) {
             return 'string'
         }
-        if (/^[0-1]+b$/g.test(word)) {
+        if (binaryRegex.test(word)) {
             return 'binary'
         }
-        if (/^\d+[a-fA-F0-9]+h$/g.test(word)) {
+        if (hexadecimalRegex.test(word)) {
             return 'hexadecimal'
         }
-        if (/^-?[\d]+d?$/g.test(word)) {
+        if (decimalRegex.test(word)) {
             return 'decimal'
         }
 
