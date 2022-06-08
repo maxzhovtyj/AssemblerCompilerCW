@@ -24,7 +24,8 @@ let lst2Res = ''
 
 fs.writeFileSync(lst1FileUrl, topContent + description)
 parsed.forEach((row, index) => {
-    let tmp = row.split(/[ ](?=[^\]]*?(?:\[|$))/g).filter(str => str !== '')
+    let tmp
+    tmp = row.split(/[ ](?=[^\]]*?(?:\[|$))/g).filter(str => str !== '')
     lstRes += parser.getInfo(tmp)
 })
 

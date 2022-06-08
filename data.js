@@ -74,6 +74,7 @@ class Data {
     }
 
     codeRowType = {
+        cmpInstruction: [['instruction'], ['8-bit register', '32-bit data register'], ['character'], ['binary', 'decimal', 'hexadecimal', 'string']],
         imulInstruction: [['instruction'], ['8-bit register', '32-bit data register']],
         idivInstruction: [['instruction'], ['8-bit register', '32-bit data register']],
         jmpInstruction: [['instruction'], ['user identifier']],
@@ -292,7 +293,39 @@ class Data {
                     Error.errorCall()
                     return 0
                 case 'cmp':
-                    if (row[1] === 'al' && row[3].endsWith('b')) {
+                    if (typeArr.length !== row.length) {
+                        console.log(row)
+                        console.log(typeArr)
+                        Error.errorCall()
+                        return 0
+                    }
+                    for (let i = 0; i < row.length; i++) {
+                        if (!this.codeRowType.cmpInstruction[i].includes(typeArr[i])) {
+                            console.log(row)
+                            console.log(typeArr)
+                            Error.errorCall()
+                            return 0
+                        }
+                    }
+                    if (row[1] === 'al') {
+                        if (typeArr[3] === 'string') {
+                            if (row[3].length === 3) return 2
+                            else {
+                                console.log(row)
+                                console.log(typeArr)
+                                Error.errorCall()
+                                return 0
+                            }
+                        }
+                        if (typeArr[3] === 'decimal') {
+                            if (row[3] <= 255) return 2
+                            else {
+                                console.log(row)
+                                console.log(typeArr)
+                                Error.errorCall()
+                                return 0
+                            }
+                        }
                         return 2
                     }
                     if (['bl', 'cl', 'dl'].includes(row[1]) && row[3].endsWith('b')) {
@@ -377,12 +410,15 @@ class Data {
                                 return 0
                             }
                         }
-                        if (this.data[0].bit8.includes(row[1]) || this.data[1].bit32.includes(row[1])) {
-                            if (typeArr[3] === 'identifier type byte' || typeArr[3] === 'identifier 4 type bytes') {
+                        if (this.codeRowType.adcInstruction[1].includes(typeArr[1])) {
+                            if (typeArr[3] === 'identifier type byte' || typeArr[3] === 'identifier type 4 bytes') {
                                 return 3
                             } else {
+                                console.log(row)
+                                console.log(typeArr)
                                 console.log("Operands types must match")
                                 Error.errorCall()
+                                return 0
                             }
                         }
                         return 0
@@ -448,7 +484,7 @@ class Data {
         if (/^[0-1]+b$/g.test(word)) {
             return 'binary'
         }
-        if (/^(0x|0X)?[a-fA-F0-9]+h$/g.test(word)) {
+        if (/^\d+[a-fA-F0-9]+h$/g.test(word)) {
             return 'hexadecimal'
         }
         if (/^-?[\d]+d?$/g.test(word)) {
