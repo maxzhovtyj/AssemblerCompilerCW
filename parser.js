@@ -1,6 +1,7 @@
 const fs = require('fs')
 const {data} = require('./data')
 const Error = require('./error')
+const {bracketSplit, quotesSplit} = require("./regex");
 
 class Parser {
     frame = '='.repeat(61)
@@ -12,7 +13,7 @@ class Parser {
         return row.map(str => str
             .split(/([,:\+\[\]])/)
             .map(el => el.trim()
-                .split(" "))
+                .split(quotesSplit))
             .flat())
             .flat()
             .filter(word => word !== '')
@@ -161,6 +162,7 @@ class Parser {
                 case '8-bit register':
                 case '16-bit register':
                 case '32-bit data register':
+                case 'general purpose registers':
                 case 'decimal':
                 case 'binary':
                 case 'hexadecimal':
@@ -205,7 +207,7 @@ class Parser {
             .map(str => str.replaceAll(/[\t]/g, ' '))
         let filtered = []
         content.forEach((row) => {
-            let tmp = row.split(/[ ](?=[^\]]*?(?:\[|$))/g)
+            let tmp = row.split(bracketSplit)
             filtered.push(this.rowAnalyser(tmp))
         })
         let dataSegmentIndex = 0

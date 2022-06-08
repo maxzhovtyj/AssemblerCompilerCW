@@ -4,11 +4,11 @@ Filename: lst1.txt
 1-line, 2-address, 3-size, 4-assembly operator
 
 000		0000		0		Data1 segment
-001		0000		5		String db 'Hello'
-002		0005		1		Val db 10111111b
-003		0006		2		Vw dw 1234d
-004		0008		4		Vd dd 0d7856fdah
-005		000C		0		Data1 ends
+001		0000		b		String db 'Hello World'
+002		000B		1		Val db 10111111b
+003		000C		2		Vw dw 1234d
+004		000E		4		Vd dd 0d7856fdah
+005		0012		0		Data1 ends
 
 006		0000		0		Data2 segment
 007		0000		2		Var dw -128
@@ -54,15 +54,15 @@ Filename: lst1.txt
 045		0000		0		end
 
 Segment	Size
-DATA1	000C
+DATA1	00012
 DATA2	0009
 CODE1	004B
 
 Name	Type	Address	Segment
 String	BYTE	0000	Data1
-Val		BYTE	0005	Data1
-Vw		WORD	0006	Data1
-Vd		DWORD	0008	Data1
+Val		BYTE	000B	Data1
+Vw		WORD	000C	Data1
+Vd		DWORD	000E	Data1
 Var		WORD	0000	Data2
 QWERTY	DWORD	0002	Data2
 Zxcv	BYTE	0006	Data2

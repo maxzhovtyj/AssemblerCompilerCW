@@ -2,6 +2,7 @@ const fs = require("fs")
 const {parser} = require('./parser')
 const Error = require('./error')
 const {existingLabels, usedLabels, varDefinitions} = require('./data')
+const {bracketSplit, quotesSplit} = require("./regex");
 
 const asmFileUrl = './kr2.asm'
 const lstFileUrl = './lst0.txt'
@@ -25,13 +26,13 @@ let lst2Res = ''
 fs.writeFileSync(lst1FileUrl, topContent + description)
 parsed.forEach((row, index) => {
     let tmp
-    tmp = row.split(/[ ](?=[^\]]*?(?:\[|$))/g).filter(str => str !== '')
+    if (row.includes("'")) tmp = row.split(quotesSplit).filter(str => str !== '')
+    else tmp = row.split(bracketSplit).filter(str => str !== '')
     lstRes += parser.getInfo(tmp)
 })
+fs.writeFileSync(lstFileUrl, lstRes)
 
 const [dataSegmentSize, dataSegment1Size, codeSegmentSize] = parser.lstWriter(str)
-
-fs.writeFileSync(lstFileUrl, lstRes)
 fs.appendFileSync(lst1FileUrl, '\n' + segmentSize
     + dataSegmentSize.toString(16).toUpperCase()
     + '\n' + dataSegment1Size.toString(16).toUpperCase()

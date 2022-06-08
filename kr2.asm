@@ -1,5 +1,5 @@
 Data1 segment
-	String db 'Hello'
+	String db 'Hello World'
 	Val	db 10111111b
 	Vw dw 1234d
 	Vd dd 0d7856fdah

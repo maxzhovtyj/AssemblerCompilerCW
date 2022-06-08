@@ -1,4 +1,5 @@
 const Error = require('./error')
+const {quotesSplit} = require("./regex");
 
 class Data {
     data = [
@@ -38,7 +39,7 @@ class Data {
     dataRowHandler(row, segmentName, address) {
         let typeArr = []
         let type = ''
-        row = row.split(' ')
+        row = row.split(quotesSplit)
         row.forEach(word => {
             typeArr.push(this.findOne(word))
         })
