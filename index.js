@@ -21,7 +21,6 @@ const description = '1-line, 2-address, 3-size, 4-assembly operator\n\n'
 const segmentSize = 'Segment\tSize\n'
 
 let lstRes = ''
-let lst2Res = ''
 
 fs.writeFileSync(lst1FileUrl, topContent + description)
 parsed.forEach((row, index) => {
@@ -49,7 +48,6 @@ for (let i = 0; i < varDefinitions.length; i++) {
 let lst1Errors = `\nErrors: ${Error.errorCount}`
 fs.appendFileSync(lst1FileUrl, lst1Errors)
 
-fs.writeFileSync(lst2FileUrl, lst2Res)
 function eqSet(existingSet, usedSet) {
     for (let a of usedSet) {
         if (!existingSet.has(a)) {
